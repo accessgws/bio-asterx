@@ -59,7 +59,7 @@ function playBatArrival() {
 
   // Morcego Voador (Clonado do vetor original)
   const flyingBat = original.cloneNode(true);
-  flyingBat.className = 'arrival-bat';
+  flyingBat.setAttribute('class', 'arrival-bat');
   flyingBat.style.position = 'fixed';
   flyingBat.style.left = `${batLeft}px`;
   flyingBat.style.top = `${batTop}px`;
