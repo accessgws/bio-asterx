@@ -1099,13 +1099,37 @@
   }
 
   @media (prefers-reduced-motion: reduce) {
+    .arrival { display: none !important; }
     .card, .card::before, .card::after, .dynamic-island, .story-circle, .story-viewer, .story-modal { transition: none; }
     .card:hover, .dynamic-island:hover, .story-circle:hover { transform: none; }
     .status-dot, .eq-bar, .island-audio.is-playing .island-eq-bar, .wordmark-reflex, .landing-ripple, .companion.do-flip svg { animation: none; }
   }
 </style>
+<noscript><style>.arrival { display: none !important; }</style></noscript>
 </head>
 <body>
+<div id="arrival-layer" class="arrival" aria-hidden="true" title="Clique para pular introdução">
+  <div class="arrival-backdrop"></div>
+</div>
+<script>
+(function () {
+  var l = document.getElementById('arrival-layer');
+  if (!l) return;
+  if (typeof Element.prototype.animate !== 'function' || (window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches)) {
+    l.remove();
+    return;
+  }
+  l.addEventListener('click', function () {
+    if (!window.__asterxArrivalStarted) {
+      window.__asterxSkipArrival = true;
+      l.remove();
+    }
+  }, { once: true });
+  window.__asterxArrivalFailsafe = setTimeout(function () {
+    if (!window.__asterxArrivalStarted) l.remove();
+  }, 4000);
+})();
+</script>
 
 <div class="stardust" aria-hidden="true"></div>
 

@@ -1,23 +1,43 @@
 // arrival.js - Abertura Cinematográfica: Boas-Vindas, Metamorfose em Morcego e Voo até o Header
 
 function playBatArrival() {
+  const preLayer = document.getElementById('arrival-layer');
   const motion = matchMedia('(prefers-reduced-motion: reduce)');
-  if (motion.matches || typeof Element.prototype.animate !== 'function') return;
+  if (window.__asterxSkipArrival || motion.matches || typeof Element.prototype.animate !== 'function') {
+    clearTimeout(window.__asterxArrivalFailsafe);
+    if (preLayer) preLayer.remove();
+    return;
+  }
+
+  window.__asterxArrivalStarted = true;
+  clearTimeout(window.__asterxArrivalFailsafe);
 
   const companion = document.querySelector('.companion');
-  if (!companion) return;
+  if (!companion) {
+    if (preLayer) preLayer.remove();
+    return;
+  }
 
   const original = companion.querySelector('.bat-svg') || companion.querySelector('svg');
-  if (!original) return;
+  if (!original) {
+    if (preLayer) preLayer.remove();
+    return;
+  }
 
-  // Palco de animação de tela cheia
-  const layer = document.createElement('div');
-  layer.className = 'arrival';
-  layer.setAttribute('aria-hidden', 'true');
-  layer.title = 'Clique para pular introdução';
+  // Reaproveita o palco pré-carregado no HTML (evita flash do site antes da abertura)
+  const layer = preLayer || document.createElement('div');
+  if (!preLayer) {
+    layer.id = 'arrival-layer';
+    layer.className = 'arrival';
+    layer.setAttribute('aria-hidden', 'true');
+    layer.title = 'Clique para pular introdução';
+    const createdBackdrop = document.createElement('div');
+    createdBackdrop.className = 'arrival-backdrop';
+    layer.append(createdBackdrop);
+    document.body.append(layer);
+  }
 
-  const backdrop = document.createElement('div');
-  backdrop.className = 'arrival-backdrop';
+  const backdrop = layer.querySelector('.arrival-backdrop');
 
   // Container Central de Boas-Vindas
   const centerBox = document.createElement('div');
@@ -26,13 +46,13 @@ function playBatArrival() {
   const greeting = document.createElement('h1');
   greeting.className = 'arrival-greeting';
   greeting.textContent = 'Bem-vindo';
+  greeting.style.opacity = '0';
 
   const shockwave = document.createElement('div');
   shockwave.className = 'arrival-shockwave';
 
   centerBox.append(greeting, shockwave);
-  layer.append(backdrop, centerBox);
-  document.body.append(layer);
+  layer.append(centerBox);
   companion.classList.add('is-arriving');
 
   // Posição exata do centro da tela / texto de boas-vindas
