@@ -33,7 +33,7 @@
     --font-mono: "Geist Mono", monospace;
   }
 
-  * { box-sizing: border-box; }
+  * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
 
   body {
     margin: 0;
@@ -311,6 +311,9 @@
     place-items: center;
     isolation: isolate;
     cursor: pointer;
+    user-select: none;
+    -webkit-user-select: none;
+    -webkit-touch-callout: none;
     transition: transform 0.2s ease;
   }
 
@@ -388,8 +391,34 @@
   .arrival-backdrop {
     position: absolute;
     inset: 0;
-    background: radial-gradient(ellipse at 50% 45%, #2a0f3d 0%, #0c0515 72%);
+    background: radial-gradient(ellipse at 50% 45%, #2a0f3d 0%, #0c0515 70%, #050209 100%);
     transition: opacity 0.4s ease;
+  }
+
+  .arrival-backdrop::before {
+    content: "";
+    position: absolute;
+    inset: -15%;
+    background: radial-gradient(circle at 50% 45%, rgba(189, 76, 255, 0.22) 0%, rgba(138, 37, 196, 0.08) 32%, transparent 62%);
+    animation: arrival-breathe 2.6s ease-in-out infinite alternate;
+    pointer-events: none;
+  }
+
+  .arrival-backdrop::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background-image:
+      radial-gradient(1px 1px at 18% 24%, rgba(246, 220, 255, 0.32), transparent),
+      radial-gradient(1.2px 1.2px at 78% 28%, rgba(215, 114, 255, 0.35), transparent),
+      radial-gradient(1px 1px at 32% 72%, rgba(255, 255, 255, 0.25), transparent),
+      radial-gradient(1.2px 1.2px at 84% 76%, rgba(235, 180, 255, 0.28), transparent);
+    pointer-events: none;
+  }
+
+  @keyframes arrival-breathe {
+    0% { transform: scale(0.94); opacity: 0.7; }
+    100% { transform: scale(1.08); opacity: 1; }
   }
 
   .arrival-center {
@@ -401,25 +430,67 @@
     flex-direction: column;
     align-items: center;
     justify-content: center;
+    gap: 0.65rem;
     width: min(92vw, 560px);
     text-align: center;
     pointer-events: none;
   }
 
+  .arrival-halo {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: clamp(180px, 44vw, 310px);
+    height: clamp(70px, 16vw, 110px);
+    transform: translate(-50%, -50%);
+    border-radius: 50%;
+    background: radial-gradient(ellipse, rgba(205, 92, 255, 0.38) 0%, rgba(155, 48, 234, 0.12) 48%, transparent 74%);
+    filter: blur(18px);
+    opacity: 0;
+    pointer-events: none;
+  }
+
+  .arrival-tag {
+    position: relative;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+    padding: 0.24rem 0.72rem;
+    border-radius: 999px;
+    border: 1px solid rgba(216, 140, 255, 0.38);
+    background: rgba(24, 8, 39, 0.72);
+    color: #e9c8ff;
+    font: 600 0.7rem var(--font-mono);
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+    box-shadow: 0 0 18px rgba(189, 76, 255, 0.22);
+    opacity: 0;
+  }
+
   .arrival-greeting {
+    position: relative;
     margin: 0;
-    font: 800 clamp(1.8rem, 6vw, 3.2rem)/1.2 var(--font-sans);
-    background: linear-gradient(180deg, #f6f5ff 0%, #a9a2c3 35%, #ffffff 55%, #8c83a9 100%);
+    font: 800 clamp(2rem, 7vw, 3.5rem)/1.12 var(--font-sans);
+    background: linear-gradient(110deg, #a9a2c3 0%, #f6f5ff 26%, #ffffff 48%, #d79eff 56%, #f6f5ff 68%, #8c83a9 100%);
+    background-size: 230% 100%;
+    background-position: 110% 0;
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
     background-clip: text;
     color: transparent;
     letter-spacing: -0.025em;
-    -webkit-text-stroke: 0.6px rgba(246, 236, 255, 0.55);
-    filter: drop-shadow(0 0 8px rgba(216, 190, 255, 0.75)) drop-shadow(0 0 22px rgba(169, 162, 195, 0.5));
+    -webkit-text-stroke: 0.55px rgba(246, 236, 255, 0.52);
+    filter: drop-shadow(0 0 10px rgba(216, 190, 255, 0.65)) drop-shadow(0 0 26px rgba(169, 162, 195, 0.45));
+    animation: arrival-shimmer 1.15s cubic-bezier(0.22, 1, 0.36, 1) forwards;
   }
 
-  .arrival-shockwave {
+  @keyframes arrival-shimmer {
+    0% { background-position: 110% 0; }
+    100% { background-position: 10% 0; }
+  }
+
+  .arrival-shockwave,
+  .arrival-shockwave-2 {
     position: absolute;
     top: 50%;
     left: 50%;
@@ -431,6 +502,53 @@
     box-shadow: 0 0 40px #bd4cff, inset 0 0 25px #bd4cff;
     opacity: 0;
     pointer-events: none;
+  }
+
+  .arrival-shockwave-2 {
+    border-width: 1.5px;
+    border-color: #c98cff;
+    box-shadow: 0 0 28px rgba(189, 76, 255, 0.7);
+  }
+
+  .arrival-spark {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: 5px;
+    height: 5px;
+    border-radius: 50%;
+    background: #f5d6ff;
+    box-shadow: 0 0 10px #d749ff;
+    opacity: 0;
+    pointer-events: none;
+  }
+
+  .arrival-skip-hint {
+    position: fixed;
+    bottom: max(1.35rem, env(safe-area-inset-bottom, 0px));
+    left: 50%;
+    transform: translateX(-50%);
+    margin: 0;
+    color: rgba(215, 195, 232, 0.55);
+    font: 500 0.72rem var(--font-mono);
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    pointer-events: none;
+    opacity: 0;
+  }
+
+  body.is-revealing main > .profile,
+  body.is-revealing main > .stories-section,
+  body.is-revealing main > .links {
+    animation: page-cascade-in 0.42s cubic-bezier(0.22, 1, 0.36, 1) backwards;
+  }
+
+  body.is-revealing main > .stories-section { animation-delay: 0.05s; }
+  body.is-revealing main > .links { animation-delay: 0.1s; }
+
+  @keyframes page-cascade-in {
+    0% { opacity: 0.68; transform: translateY(10px); }
+    100% { opacity: 1; transform: translateY(0); }
   }
 
   .arrival-bat {
@@ -695,6 +813,15 @@
     text-shadow: 0 0 8px rgba(216, 190, 255, 0.6);
   }
 
+  .story-circle.is-seen .story-ring {
+    background: rgba(140, 118, 165, 0.35);
+    box-shadow: none;
+  }
+
+  .story-circle.is-seen .story-name {
+    color: #8d7a9c;
+  }
+
   /* Modal de Stories (Visual Instagram Dark Cyber) */
   .story-modal {
     position: fixed;
@@ -733,8 +860,16 @@
     display: flex;
     flex-direction: column;
     overflow: hidden;
+    touch-action: pan-y;
+    user-select: none;
     transform: scale(0.92);
     transition: transform 0.28s cubic-bezier(0.34, 1.56, 0.64, 1);
+  }
+
+  .story-viewer.is-paused .story-header,
+  .story-viewer.is-paused .story-bars {
+    opacity: 0.72;
+    transition: opacity 0.15s ease;
   }
 
   .story-modal.is-active .story-viewer {
@@ -910,6 +1045,15 @@
     transition: all 0.35s ease !important;
   }
 
+  .card.is-copied {
+    border-color: rgba(167, 243, 208, 0.72) !important;
+    box-shadow: 0 0 24px rgba(52, 211, 153, 0.25), 0 0 18px rgba(189, 76, 255, 0.35) !important;
+  }
+
+  .card.is-copied small {
+    color: #b7f7d8;
+  }
+
   .icon {
     display: grid;
     place-items: center;
@@ -1010,6 +1154,266 @@
     100% { height: 100%; }
   }
 
+  .music-time {
+    margin-left: auto;
+    padding-left: 0.5rem;
+    font: 500 0.72rem var(--font-mono);
+    color: var(--muted);
+    font-variant-numeric: tabular-nums;
+    letter-spacing: 0.01em;
+    transition: color 0.2s ease;
+  }
+
+  .card.is-playing .music-time {
+    color: #e2b8ff;
+  }
+
+  .music-progress {
+    position: absolute;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    height: 2.5px;
+    background: rgba(189, 76, 255, 0.14);
+    pointer-events: none;
+    overflow: hidden;
+  }
+
+  .music-progress-fill {
+    height: 100%;
+    width: 0%;
+    background: linear-gradient(90deg, #9b30ea 0%, #e084ff 65%, #f6f5ff 100%);
+    box-shadow: 0 0 8px rgba(215, 114, 255, 0.8);
+    transition: width 0.2s linear;
+  }
+
+  .card.is-loading .music-progress-fill {
+    width: 34%;
+    animation: music-buffering 0.9s ease-in-out infinite alternate;
+  }
+
+  @keyframes music-buffering {
+    0% { transform: translateX(-20%); opacity: 0.65; }
+    100% { transform: translateX(210%); opacity: 1; }
+  }
+
+  /* Gaveta / Modal Dark Obsidian (E-book & Setup/Ofertas) */
+  .drawer-modal {
+    position: fixed;
+    inset: 0;
+    z-index: 110;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 1rem;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.24s ease;
+  }
+
+  .drawer-modal.is-active {
+    opacity: 1;
+    pointer-events: auto;
+  }
+
+  .drawer-backdrop {
+    position: absolute;
+    inset: 0;
+    background: rgba(4, 1, 8, 0.84);
+    backdrop-filter: blur(14px);
+    -webkit-backdrop-filter: blur(14px);
+  }
+
+  .drawer-panel {
+    position: relative;
+    z-index: 2;
+    width: min(94vw, 480px);
+    max-height: min(86svh, 620px);
+    display: flex;
+    flex-direction: column;
+    background: linear-gradient(175deg, #13061f 0%, #08020d 55%, #12041d 100%);
+    border: 1px solid rgba(189, 76, 255, 0.42);
+    border-radius: 22px;
+    box-shadow: 0 24px 64px rgba(0, 0, 0, 0.92), 0 0 32px rgba(189, 76, 255, 0.24);
+    overflow: hidden;
+    transform: translateY(14px) scale(0.96);
+    transition: transform 0.28s cubic-bezier(0.22, 1, 0.36, 1);
+  }
+
+  .drawer-modal.is-active .drawer-panel {
+    transform: translateY(0) scale(1);
+  }
+
+  .drawer-header {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 0.75rem;
+    padding: 1.15rem 1.2rem 0.95rem;
+    border-bottom: 1px solid rgba(189, 76, 255, 0.16);
+  }
+
+  .drawer-heading {
+    min-width: 0;
+  }
+
+  .drawer-eyebrow {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.35rem;
+    padding: 0.2rem 0.55rem;
+    border-radius: 999px;
+    background: rgba(189, 76, 255, 0.16);
+    border: 1px solid rgba(189, 76, 255, 0.35);
+    color: #e9c4ff;
+    font: 600 0.68rem var(--font-mono);
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+  }
+
+  .drawer-title {
+    margin: 0.45rem 0 0.15rem;
+    font: 700 1.2rem/1.2 var(--font-sans);
+    color: #fff;
+  }
+
+  .drawer-sub {
+    margin: 0;
+    color: var(--muted);
+    font: 400 0.84rem/1.4 var(--font-sans);
+  }
+
+  .drawer-body {
+    padding: 1rem 1.2rem 1.25rem;
+    overflow-y: auto;
+    display: flex;
+    flex-direction: column;
+    gap: 0.7rem;
+  }
+
+  .drawer-item {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.85rem;
+    padding: 0.85rem 0.95rem;
+    border-radius: 14px;
+    background: rgba(18, 7, 29, 0.85);
+    border: 1px solid rgba(110, 62, 152, 0.34);
+    transition: border-color 0.2s ease, background 0.2s ease;
+  }
+
+  .drawer-item:hover {
+    border-color: rgba(189, 76, 255, 0.55);
+    background: rgba(28, 10, 44, 0.92);
+  }
+
+  .drawer-item-info {
+    min-width: 0;
+    flex: 1;
+  }
+
+  .drawer-item-title {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 0.4rem;
+    font: 600 0.9rem/1.3 var(--font-sans);
+    color: #faf2ff;
+  }
+
+  .drawer-item-desc {
+    margin: 0.2rem 0 0;
+    color: #9e8cae;
+    font: 400 0.78rem/1.35 var(--font-sans);
+  }
+
+  .drawer-item-actions {
+    display: flex;
+    align-items: center;
+    gap: 0.4rem;
+    flex-shrink: 0;
+  }
+
+  .drawer-chip-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.3rem;
+    padding: 0.42rem 0.7rem;
+    border-radius: 999px;
+    border: 1px solid rgba(189, 76, 255, 0.42);
+    background: rgba(189, 76, 255, 0.14);
+    color: #f3dcff;
+    font: 600 0.72rem var(--font-mono);
+    cursor: pointer;
+    text-decoration: none;
+    transition: background 0.2s ease, border-color 0.2s ease, transform 0.15s ease;
+    white-space: nowrap;
+  }
+
+  .drawer-chip-btn:hover {
+    background: rgba(189, 76, 255, 0.28);
+    border-color: #d896ff;
+    color: #ffffff;
+  }
+
+  .drawer-chip-btn:active {
+    transform: scale(0.96);
+  }
+
+  .drawer-chip-btn.is-copied {
+    border-color: rgba(167, 243, 208, 0.75);
+    background: rgba(16, 185, 129, 0.2);
+    color: #d1fae5;
+  }
+
+  .drawer-cta {
+    margin-top: 0.35rem;
+    width: 100%;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+    padding: 0.8rem 1rem;
+    border-radius: 999px;
+    border: 1px solid rgba(216, 140, 255, 0.55);
+    background: linear-gradient(135deg, rgba(160, 40, 240, 0.42), rgba(90, 20, 150, 0.55));
+    color: #f9ecff;
+    font: 600 0.88rem var(--font-sans);
+    cursor: pointer;
+    text-decoration: none;
+    transition: transform 0.18s ease, box-shadow 0.2s ease, border-color 0.2s ease;
+  }
+
+  .drawer-cta:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 0 24px rgba(189, 76, 255, 0.45);
+    border-color: #ebb4ff;
+    color: #ffffff;
+  }
+
+  @media (max-width: 520px) {
+    .drawer-modal {
+      align-items: flex-end;
+      padding: 0;
+    }
+    .drawer-panel {
+      width: 100%;
+      max-height: 84svh;
+      border-bottom-left-radius: 0;
+      border-bottom-right-radius: 0;
+      border-bottom: none;
+      padding-bottom: env(safe-area-inset-bottom, 0px);
+    }
+    .drawer-item {
+      flex-direction: column;
+      align-items: stretch;
+    }
+    .drawer-item-actions {
+      justify-content: flex-end;
+    }
+  }
+
   /* Rodapé */
   footer {
     margin-top: 2.5rem;
@@ -1100,9 +1504,9 @@
 
   @media (prefers-reduced-motion: reduce) {
     .arrival { display: none !important; }
-    .card, .card::before, .card::after, .dynamic-island, .story-circle, .story-viewer, .story-modal { transition: none; }
+    .card, .card::before, .card::after, .dynamic-island, .story-circle, .story-viewer, .story-modal, .drawer-modal, .drawer-panel { transition: none; }
     .card:hover, .dynamic-island:hover, .story-circle:hover { transform: none; }
-    .status-dot, .eq-bar, .island-audio.is-playing .island-eq-bar, .wordmark-reflex, .landing-ripple, .companion.do-flip svg { animation: none; }
+    .status-dot, .eq-bar, .island-audio.is-playing .island-eq-bar, .wordmark-reflex, .landing-ripple, .companion.do-flip svg, .card.is-loading .music-progress-fill { animation: none; }
   }
 </style>
 <noscript><style>.arrival { display: none !important; }</style></noscript>
@@ -1143,7 +1547,7 @@
           <span>caçando na madrugada</span>
         </div>
         <span class="island-divider" aria-hidden="true"></span>
-        <button type="button" class="island-share" onclick="copyToClipboard(window.location.href, 'Link do perfil copiado!')" title="Copiar link da bio">
+        <button type="button" class="island-share" onclick="shareProfile()" title="Compartilhar perfil">
           <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
             <path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/>
             <path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/>
@@ -1310,13 +1714,13 @@
         </span>
         <div class="card-content">
           <strong>Morcego ASTERX <span class="badge-pill">Destaque</span></strong>
-          <small>Veja o morcego em movimento</small>
+          <small>Mascote interativo & mini-game</small>
         </div>
         <span class="arrow" aria-hidden="true">→</span>
       </a>
 
       <!-- Card E-book (Oferta Própria) -->
-      <a class="card" id="card-ebook" href="#ebook" onclick="showToast('Em breve: E-book ASTERX!'); return false;">
+      <button type="button" class="card" id="card-ebook" onclick="openDrawer('ebook')" style="text-align: left; font: inherit; width: 100%;">
         <span class="icon" aria-hidden="true">
           <svg viewBox="0 0 24 24" width="19" height="19" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
             <path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/>
@@ -1329,10 +1733,10 @@
           <small>Guia exclusivo & estratégias</small>
         </div>
         <span class="arrow" aria-hidden="true">→</span>
-      </a>
+      </button>
 
       <!-- Card Setup & Ofertas (Afiliados) -->
-      <a class="card" id="card-ofertas" href="#ofertas" onclick="showToast('Ofertas e cupons de afiliado!'); return false;">
+      <button type="button" class="card" id="card-ofertas" onclick="openDrawer('ofertas')" style="text-align: left; font: inherit; width: 100%;">
         <span class="icon" aria-hidden="true">
           <svg viewBox="0 0 24 24" width="19" height="19" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
             <path d="M20.59 13.41l-7.17 7.17a2 2 0 0 1-2.83 0L2 12V2h10l8.59 8.59a2 2 0 0 1 0 2.82z"/>
@@ -1344,10 +1748,10 @@
           <small>Equipamentos e cupons com desconto</small>
         </div>
         <span class="arrow" aria-hidden="true">↗</span>
-      </a>
+      </button>
 
       <!-- Card GitHub -->
-      <a class="card" id="card-github" href="https://github.com/" target="_blank" rel="noopener noreferrer">
+      <a class="card" id="card-github" href="https://github.com/accessgws" target="_blank" rel="noopener noreferrer">
         <span class="icon" aria-hidden="true">
           <svg viewBox="0 0 24 24"><path d="M12 2A10 10 0 0 0 2 12c0 4.42 2.87 8.17 6.84 9.5.5.08.66-.23.66-.5v-1.69c-2.77.6-3.36-1.34-3.36-1.34-.46-1.16-1.11-1.47-1.11-1.47-.91-.62.07-.6.07-.6 1 .07 1.53 1.03 1.53 1.03.87 1.52 2.34 1.07 2.91.83.1-.65.35-1.09.63-1.34-2.22-.25-4.55-1.11-4.55-4.92 0-1.11.38-2 1.03-2.71-.1-.25-.45-1.29.1-2.64 0 0 .84-.27 2.75 1.02.79-.22 1.65-.33 2.5-.33.85 0 1.71.11 2.5.33 1.91-1.29 2.75-1.02 2.75-1.02.55 1.35.2 2.39.1 2.64.65.71 1.03 1.6 1.03 2.71 0 3.82-2.34 4.66-4.57 4.91.36.31.69.92.69 1.85V21c0 .27.16.59.67.5C19.14 20.16 22 16.42 22 12A10 10 0 0 0 12 2Z"/></svg>
         </span>
@@ -1359,7 +1763,7 @@
       </a>
 
       <!-- Card Discord (Copiar Tag) -->
-      <div class="card" id="card-discord" onclick="copyToClipboard('asterx_', 'Tag do Discord copiada!')" role="button" tabindex="0" onkeydown="if(event.key==='Enter'||event.key===' ')copyToClipboard('asterx_','Tag do Discord copiada!')">
+      <div class="card" id="card-discord" onclick="copyToClipboard('asterx_', 'Tag do Discord copiada!', this)" role="button" tabindex="0" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();copyToClipboard('asterx_','Tag do Discord copiada!',this);}">
         <span class="icon" aria-hidden="true">
           <svg viewBox="0 0 24 24"><path d="M20.317 4.37a19.791 19.791 0 0 0-4.885-1.515.074.074 0 0 0-.079.037c-.21.375-.444.864-.608 1.25a18.27 18.27 0 0 0-5.487 0 12.64 12.64 0 0 0-.617-1.25.077.077 0 0 0-.079-.037A19.736 19.736 0 0 0 3.677 4.37a.07.07 0 0 0-.032.027C.533 9.046-.32 13.58.099 18.057a.082.082 0 0 0 .031.057 19.9 19.9 0 0 0 5.993 3.03.078.078 0 0 0 .084-.028 14.09 14.09 0 0 0 1.226-1.994.076.076 0 0 0-.041-.106 13.107 13.107 0 0 1-1.872-.892.077.077 0 0 1-.008-.128 10.2 10.2 0 0 0 .372-.292.074.074 0 0 1 .077-.01c3.929 1.793 8.18 1.793 12.061 0a.074.074 0 0 1 .078.01c.12.098.246.198.373.292a.077.077 0 0 1-.006.127 12.299 12.299 0 0 1-1.873.894.077.077 0 0 0-.041.107c.36.698.772 1.362 1.225 1.993a.076.076 0 0 0 .084.028 19.839 19.839 0 0 0 6.002-3.03.077.077 0 0 0 .032-.054c.5-5.177-.838-9.674-3.549-13.66a.061.061 0 0 0-.031-.028zM8.02 15.33c-1.183 0-2.157-1.085-2.157-2.419 0-1.333.956-2.419 2.157-2.419 1.21 0 2.176 1.096 2.157 2.42 0 1.333-.956 2.418-2.157 2.418zm7.975 0c-1.183 0-2.157-1.085-2.157-2.419 0-1.333.955-2.419 2.157-2.419 1.21 0 2.176 1.096 2.157 2.42 0 1.333-.946 2.418-2.157 2.418z"/></svg>
         </span>
@@ -1367,13 +1771,6 @@
           <strong>Discord</strong>
           <small>asterx_ • Clique para copiar</small>
         </div>
-        <span class="arrow" aria-hidden="true">
-          <svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
-            <rect x="9" y="9" width="13" height="13" rx="2" ry="2"/>
-            <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/>
-          </svg>
-        </span>
-      </div>
         <span class="arrow" aria-hidden="true">
           <svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
             <rect x="9" y="9" width="13" height="13" rx="2" ry="2"/>
@@ -1400,10 +1797,14 @@
               <span class="eq-bar"></span>
               <span class="eq-bar"></span>
             </span>
+            <span class="music-time" id="music-time">0:00</span>
           </strong>
           <small id="music-card-sub">Travis Scott — MY EYES • Clique para tocar</small>
         </div>
         <span class="arrow" aria-hidden="true">→</span>
+        <div class="music-progress" aria-hidden="true">
+          <div class="music-progress-fill" id="music-progress-fill"></div>
+        </div>
       </div>
     </div>
   </nav>
@@ -1441,6 +1842,22 @@
     <!-- Áreas de toque para avançar/voltar -->
     <div class="story-nav-tap story-nav-prev" onclick="prevStory()" aria-label="História anterior"></div>
     <div class="story-nav-tap story-nav-next" onclick="nextStory()" aria-label="Próxima história"></div>
+  </div>
+</div>
+
+<!-- Gaveta / Modal Dark Obsidian (E-book e Setup & Ofertas) -->
+<div class="drawer-modal" id="drawer-modal" aria-hidden="true" role="dialog" aria-modal="true" aria-labelledby="drawer-title">
+  <div class="drawer-backdrop" onclick="closeDrawer()"></div>
+  <div class="drawer-panel">
+    <div class="drawer-header">
+      <div class="drawer-heading">
+        <span class="drawer-eyebrow" id="drawer-eyebrow">Destaque</span>
+        <h2 class="drawer-title" id="drawer-title">ASTERX</h2>
+        <p class="drawer-sub" id="drawer-sub"></p>
+      </div>
+      <button type="button" class="story-close-btn" id="drawer-close-btn" onclick="closeDrawer()" aria-label="Fechar janela">✕</button>
+    </div>
+    <div class="drawer-body" id="drawer-body"></div>
   </div>
 </div>
 

@@ -17,7 +17,7 @@
     color-scheme: dark;
     --font-sans: "Geist", system-ui, sans-serif;
   }
-  * { box-sizing: border-box; }
+  * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
   body {
     margin: 0;
     min-height: 100vh;
@@ -69,6 +69,9 @@
     position: relative;
     cursor: pointer;
     user-select: none;
+    -webkit-user-select: none;
+    -webkit-touch-callout: none;
+    outline: none;
   }
   svg {
     display: block;
@@ -110,6 +113,193 @@
       animation: none;
     }
   }
+
+  /* Botão para entrar no Mini-Game + HUD e Canvas */
+  .btn-play-game {
+    margin-top: 1.15rem;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.6rem;
+    padding: 0.68rem 1.25rem;
+    border-radius: 999px;
+    border: 1px solid rgba(216, 140, 255, 0.55);
+    background: linear-gradient(135deg, rgba(145, 36, 224, 0.36), rgba(45, 14, 74, 0.8));
+    color: #f9ecff;
+    font: 600 0.88rem var(--font-sans);
+    cursor: pointer;
+    box-shadow: 0 8px 26px rgba(189, 76, 255, 0.25);
+    transition: transform 0.18s ease, box-shadow 0.2s ease, border-color 0.2s ease;
+  }
+
+  .btn-play-game:hover {
+    transform: translateY(-2px);
+    border-color: #ebb4ff;
+    box-shadow: 0 0 26px rgba(189, 76, 255, 0.5);
+    color: #ffffff;
+  }
+
+  .btn-play-game:active {
+    transform: scale(0.97);
+  }
+
+  .btn-play-badge {
+    padding: 0.15rem 0.5rem;
+    border-radius: 999px;
+    background: rgba(255, 255, 255, 0.12);
+    border: 1px solid rgba(235, 180, 255, 0.3);
+    font-size: 0.72rem;
+    color: #e9c8ff;
+  }
+
+  .game-section {
+    width: min(94vw, 440px);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.75rem;
+  }
+
+  .game-section[hidden],
+  .stage[hidden] {
+    display: none;
+  }
+
+  .game-hud {
+    width: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.5rem;
+    padding: 0.55rem 0.85rem;
+    border-radius: 14px;
+    background: rgba(18, 6, 30, 0.82);
+    border: 1px solid rgba(189, 76, 255, 0.35);
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+  }
+
+  .game-stats {
+    display: flex;
+    align-items: center;
+    gap: 0.9rem;
+    font-size: 0.8rem;
+    color: #b79cc9;
+  }
+
+  .game-stats strong {
+    color: #ffffff;
+    font-variant-numeric: tabular-nums;
+  }
+
+  .game-hud-actions {
+    display: flex;
+    align-items: center;
+    gap: 0.4rem;
+  }
+
+  .game-pill-btn {
+    padding: 0.35rem 0.65rem;
+    border-radius: 999px;
+    border: 1px solid rgba(189, 76, 255, 0.38);
+    background: rgba(54, 20, 84, 0.55);
+    color: #edd7ff;
+    font: 500 0.74rem var(--font-sans);
+    cursor: pointer;
+    transition: background 0.15s ease, border-color 0.15s ease;
+  }
+
+  .game-pill-btn:hover {
+    background: rgba(105, 32, 165, 0.65);
+    border-color: #d896ff;
+    color: #ffffff;
+  }
+
+  .game-canvas-wrap {
+    position: relative;
+    width: 100%;
+    aspect-ratio: 420 / 540;
+    max-height: 70svh;
+    border-radius: 20px;
+    overflow: hidden;
+    border: 1px solid rgba(189, 76, 255, 0.45);
+    box-shadow: 0 22px 55px rgba(0, 0, 0, 0.85), 0 0 28px rgba(189, 76, 255, 0.22);
+    background: #06020a;
+  }
+
+  .game-canvas {
+    display: block;
+    width: 100%;
+    height: 100%;
+    touch-action: manipulation;
+    user-select: none;
+    -webkit-user-select: none;
+    -webkit-touch-callout: none;
+    outline: none;
+    cursor: pointer;
+  }
+
+  .game-overlay {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 1.5rem;
+    text-align: center;
+    background: rgba(7, 2, 12, 0.68);
+    backdrop-filter: blur(6px);
+    -webkit-backdrop-filter: blur(6px);
+    transition: opacity 0.2s ease;
+  }
+
+  .game-overlay.is-hidden {
+    opacity: 0;
+    pointer-events: none;
+  }
+
+  .game-overlay-eyebrow {
+    padding: 0.2rem 0.65rem;
+    border-radius: 999px;
+    border: 1px solid rgba(216, 140, 255, 0.45);
+    background: rgba(189, 76, 255, 0.18);
+    color: #ebbfff;
+    font-size: 0.72rem;
+    font-weight: 600;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+  }
+
+  .game-overlay-title {
+    margin: 0.65rem 0 0.35rem;
+    font: 600 1.45rem/1.2 var(--font-sans);
+    color: #ffffff;
+  }
+
+  .game-overlay-sub {
+    margin: 0 0 1.2rem;
+    max-width: 280px;
+    font-size: 0.85rem;
+    line-height: 1.45;
+    color: #c9b3dc;
+  }
+
+  .game-overlay-btn {
+    padding: 0.7rem 1.45rem;
+    border-radius: 999px;
+    border: 1px solid rgba(235, 180, 255, 0.6);
+    background: linear-gradient(135deg, #9b30ea, #61129c);
+    color: #ffffff;
+    font: 600 0.9rem var(--font-sans);
+    cursor: pointer;
+    box-shadow: 0 0 24px rgba(189, 76, 255, 0.45);
+    transition: transform 0.15s ease, box-shadow 0.2s ease;
+  }
+
+  .game-overlay-btn:hover {
+    transform: scale(1.04);
+    box-shadow: 0 0 32px rgba(215, 114, 255, 0.7);
+  }
 </style>
 </head>
 <body>
@@ -121,7 +311,7 @@
     </a>
   </div>
 
-  <div class="stage" title="Clique para uma acrobacia!">
+  <div class="stage" id="bat-stage" title="Clique para uma acrobacia!">
     <svg id="morcego-svg" class="bat-svg" viewBox="0 0 440 250" role="img" aria-label="Morcego ASTERX de contorno roxo e asas angulares">
       <ellipse id="sombra" cx="220" cy="216" rx="62" ry="6" fill="#060309" opacity=".55"/>
       <g id="morcego">
@@ -132,8 +322,36 @@
       </g>
     </svg>
     <p class="hint-tap">✦ Clique ou toque no morcego para uma acrobacia</p>
+    <button type="button" class="btn-play-game" id="btn-open-game">
+      <span>✦ Jogar: Caçada na Madrugada</span>
+      <span class="btn-play-badge" id="btn-open-game-best">Arcade</span>
+    </button>
   </div>
+
+  <section class="game-section" id="game-section" hidden aria-label="Mini-game Caçada na Madrugada">
+    <div class="game-hud">
+      <div class="game-stats">
+        <span>Pontos: <strong id="game-score">0</strong></span>
+        <span>Recorde: <strong id="game-best">0</strong></span>
+      </div>
+      <div class="game-hud-actions">
+        <button type="button" class="game-pill-btn" id="btn-mute-game" aria-pressed="true">Som: On</button>
+        <button type="button" class="game-pill-btn" id="btn-close-game">Mascote</button>
+      </div>
+    </div>
+
+    <div class="game-canvas-wrap">
+      <canvas class="game-canvas" id="game-canvas" width="420" height="540"></canvas>
+      <div class="game-overlay" id="game-overlay">
+        <span class="game-overlay-eyebrow" id="game-overlay-eyebrow">Mini-Game</span>
+        <h2 class="game-overlay-title" id="game-overlay-title">Caçada na Madrugada</h2>
+        <p class="game-overlay-sub" id="game-overlay-sub">Toque, clique ou aperte Espaço para voar pelos portais e coletar cristais (+3).</p>
+        <button type="button" class="game-overlay-btn" id="game-overlay-btn">Começar voo</button>
+      </div>
+    </div>
+  </section>
 </main>
 <script type="module" src="./bat.js"></script>
+<script type="module" src="./bat-game.js"></script>
 </body>
 </html>
