@@ -233,7 +233,8 @@ function showCurrentStory() {
 // Efeito Spotlight nas bordas dos cards (segue o cursor e o toque)
 function initFx() {
   const cardsContainer = document.querySelector('.cards');
-  if (cardsContainer) {
+  const canHoverFine = window.matchMedia('(hover: hover) and (pointer: fine)').matches;
+  if (cardsContainer && canHoverFine) {
     const updateCardCoords = (clientX, clientY) => {
       const cards = cardsContainer.querySelectorAll('.card');
       cards.forEach((card) => {
@@ -248,17 +249,9 @@ function initFx() {
     cardsContainer.addEventListener('mousemove', (e) => {
       updateCardCoords(e.clientX, e.clientY);
     });
-
-    cardsContainer.addEventListener('touchmove', (e) => {
-      if (e.touches && e.touches[0]) {
-        updateCardCoords(e.touches[0].clientX, e.touches[0].clientY);
-      }
-    }, { passive: true });
   }
 
-  // Player de Música Ambiente (MY EYES: 2:50 até 3:50)
-  const MUSIC_START = 170; // 2:50 em segundos
-  const MUSIC_END = 230;   // 3:50 em segundos
+  // Player de Música Ambiente (faixa já recortada em public/my-eyes.mp3)
   const bgm = document.getElementById('bgm');
   const audioBtn = document.getElementById('audio-toggle');
   const musicCard = document.getElementById('music-card');
@@ -269,24 +262,6 @@ function initFx() {
 
   if (bgm) {
     bgm.volume = 0;
-
-    const setInitialTime = () => {
-      if (bgm.currentTime < MUSIC_START || bgm.currentTime >= MUSIC_END) {
-        bgm.currentTime = MUSIC_START;
-      }
-    };
-
-    if (bgm.readyState >= 1) {
-      setInitialTime();
-    } else {
-      bgm.addEventListener('loadedmetadata', setInitialTime, { once: true });
-    }
-
-    bgm.addEventListener('timeupdate', () => {
-      if (!bgm.paused && bgm.currentTime >= MUSIC_END) {
-        bgm.currentTime = MUSIC_START;
-      }
-    });
 
     bgm.addEventListener('error', () => {
       audioMissing = true;
@@ -324,7 +299,6 @@ function initFx() {
     async function startMusic(showHint = true) {
       if (audioMissing) return false;
       try {
-        setInitialTime();
         await bgm.play();
         hasStartedOnce = true;
         fadeInAudio(0.45, 1400);

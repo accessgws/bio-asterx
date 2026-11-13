@@ -83,19 +83,21 @@ function playBatArrival() {
     { opacity: 1, transform: 'scale(1) translateY(0)' }
   ], { duration: 650, easing: 'cubic-bezier(0.16, 1, 0.3, 1)', fill: 'forwards' });
 
+  let flightAnimation = null;
+  let flapFrame = null;
+  let tFlight = null;
+  let finished = false;
+
   // 2. Acúmulo de energia vibrante nas boas-vindas com brilho cromado/metálico (750ms - 1050ms)
-  setTimeout(() => {
+  const tEnergy = setTimeout(() => {
     greeting.animate([
       { transform: 'scale(1)', filter: 'drop-shadow(0 0 8px rgba(216, 190, 255, 0.75)) drop-shadow(0 0 22px rgba(169, 162, 195, 0.5))' },
       { transform: 'scale(1.06)', filter: 'drop-shadow(0 0 20px #ffffff) drop-shadow(0 0 35px rgba(216, 190, 255, 0.95)) drop-shadow(0 0 50px rgba(189, 76, 255, 0.6))' }
     ], { duration: 300, fill: 'forwards', easing: 'ease-out' });
   }, 750);
 
-  let flightAnimation = null;
-  let flapFrame = null;
-
   // 3. A METAMORFOSE: O TEXTO EXPLODE E O MORCEGO SURGE NO LUGAR (1050ms)
-  setTimeout(() => {
+  const tMorph = setTimeout(() => {
     // Onda de choque circular
     shockwave.animate([
       { transform: 'translate(-50%, -50%) scale(0.2)', opacity: 1 },
@@ -139,7 +141,7 @@ function playBatArrival() {
     flapFrame = requestAnimationFrame(flapFlying);
 
     // 4. VOO DO MORCEGO ATÉ O SEU LUGAR NO HEADER (1420ms)
-    setTimeout(() => {
+    tFlight = setTimeout(() => {
       const arc = Math.min(innerWidth * 0.12, 75);
 
       flightAnimation = flyingBat.animate([
@@ -170,7 +172,16 @@ function playBatArrival() {
 
   }, 1050);
 
+  // Garantia de desbloqueio mesmo se o navegador pausar animações em segundo plano
+  const safetyTimer = setTimeout(finish, 3400);
+
   function finish() {
+    if (finished) return;
+    finished = true;
+    clearTimeout(tEnergy);
+    clearTimeout(tMorph);
+    clearTimeout(tFlight);
+    clearTimeout(safetyTimer);
     if (flapFrame) cancelAnimationFrame(flapFrame);
     companion.classList.remove('is-arriving');
     layer.remove();

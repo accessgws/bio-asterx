@@ -12,11 +12,12 @@ function initBatEngine() {
 
   if (!silhouette || !bat) return;
 
-  // Garante camadas SVG para partículas de rastro e explosão
+  // Garante camadas SVG para partículas de rastro e explosão (filtro único no grupo poupa GPU mobile)
   let trailParticlesGroup = svg.querySelector('#particulas-rastro');
   if (!trailParticlesGroup) {
     trailParticlesGroup = document.createElementNS('http://www.w3.org/2000/svg', 'g');
     trailParticlesGroup.id = 'particulas-rastro';
+    trailParticlesGroup.style.filter = 'drop-shadow(0 0 2px #d749ff)';
     svg.insertBefore(trailParticlesGroup, bat);
   }
 
@@ -24,6 +25,7 @@ function initBatEngine() {
   if (!burstParticlesGroup) {
     burstParticlesGroup = document.createElementNS('http://www.w3.org/2000/svg', 'g');
     burstParticlesGroup.id = 'particulas-burst';
+    burstParticlesGroup.style.filter = 'drop-shadow(0 0 3px #bd4cff)';
     svg.appendChild(burstParticlesGroup);
   }
 
@@ -88,7 +90,6 @@ function initBatEngine() {
       elem.setAttribute('width', Math.random() > 0.5 ? '4' : '3');
       elem.setAttribute('height', Math.random() > 0.5 ? '4' : '3');
       elem.setAttribute('fill', colors[Math.floor(Math.random() * colors.length)]);
-      elem.style.filter = 'drop-shadow(0 0 3px #bd4cff)';
       burstParticlesGroup.appendChild(elem);
 
       particles.push({
@@ -104,8 +105,12 @@ function initBatEngine() {
     }
   };
 
-  // Gerador de rastro de faíscas nas pontas das asas
-  function emitWingtipSparks(tipY) {
+  // Gerador de rastro de faíscas nas pontas das asas (cadência estável independente de Hz)
+  let lastSparkTime = 0;
+  function emitWingtipSparks(tipY, now) {
+    if (particles.length >= 36 || (now - lastSparkTime) < 32) return;
+    lastSparkTime = now;
+
     const colors = ['#f4cfff', '#d749ff', '#ba3eff'];
     const tips = [
       { x: 30, y: tipY + 4, vx: -0.6 },
@@ -113,12 +118,11 @@ function initBatEngine() {
     ];
 
     tips.forEach(pt => {
-      if (Math.random() > 0.4) return;
+      if (Math.random() > 0.45) return;
       const elem = document.createElementNS('http://www.w3.org/2000/svg', 'rect');
       elem.setAttribute('width', '2.5');
       elem.setAttribute('height', '2.5');
       elem.setAttribute('fill', colors[Math.floor(Math.random() * colors.length)]);
-      elem.style.filter = 'drop-shadow(0 0 2px #d749ff)';
       trailParticlesGroup.appendChild(elem);
 
       particles.push({
@@ -157,7 +161,7 @@ function initBatEngine() {
     }
   }
 
-  function draw(time) {
+  function draw(time, now) {
     const beat = Math.sin(time * 2 * Math.PI / 980);
     const lift = Math.sin(time * 2 * Math.PI / 1960);
     const wingY = (y, amplitude) => (y + beat * amplitude).toFixed(2);
@@ -188,7 +192,7 @@ function initBatEngine() {
 
     // Emissão de faíscas ao bater as asas
     if (Math.abs(beat) > 0.3) {
-      emitWingtipSparks(tip);
+      emitWingtipSparks(tip, now);
     }
     
     // Inclinação sutil em direção ao cursor + flutuação vertical
@@ -214,10 +218,12 @@ function initBatEngine() {
     }
   }
 
+  let inViewport = true;
+
   function tick(now) {
     if (previous !== null) elapsed += Math.min(now - previous, 50);
     previous = now;
-    draw(elapsed);
+    draw(elapsed, now);
     frame = requestAnimationFrame(tick);
   }
 
@@ -228,8 +234,22 @@ function initBatEngine() {
     frame = playing ? requestAnimationFrame(tick) : null;
   }
 
-  motion.addEventListener('change', event => setPlaying(!event.matches));
-  setPlaying(!motion.matches);
+  function syncPlayback() {
+    setPlaying(!motion.matches && !document.hidden && inViewport);
+  }
+
+  motion.addEventListener('change', syncPlayback);
+  document.addEventListener('visibilitychange', syncPlayback);
+
+  if (typeof IntersectionObserver === 'function') {
+    const observer = new IntersectionObserver((entries) => {
+      inViewport = entries[0] ? entries[0].isIntersecting : true;
+      syncPlayback();
+    }, { threshold: 0.05 });
+    observer.observe(svg);
+  }
+
+  syncPlayback();
 
   // Clique no morcego para acrobacia 360 e faíscas
   const companion = svg.closest('.companion') || svg.closest('main') || svg.parentElement;
