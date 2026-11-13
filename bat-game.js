@@ -7,15 +7,19 @@ function initBatMiniGame() {
   const stageEl = document.getElementById('bat-stage');
   const openBtn = document.getElementById('btn-open-game');
   const openBestEl = document.getElementById('btn-open-game-best');
+  const stageBestEl = document.getElementById('stage-best');
+  const stageRankEl = document.getElementById('stage-rank');
   const gameSection = document.getElementById('game-section');
   const closeBtn = document.getElementById('btn-close-game');
   const muteBtn = document.getElementById('btn-mute-game');
   const scoreEl = document.getElementById('game-score');
   const bestEl = document.getElementById('game-best');
+  const comboEl = document.getElementById('game-combo');
   const canvas = document.getElementById('game-canvas');
   const overlayEl = document.getElementById('game-overlay');
   const overlayEyebrow = document.getElementById('game-overlay-eyebrow');
   const overlayTitle = document.getElementById('game-overlay-title');
+  const overlayRank = document.getElementById('game-overlay-rank');
   const overlaySub = document.getElementById('game-overlay-sub');
   const overlayBtn = document.getElementById('game-overlay-btn');
 
@@ -40,10 +44,29 @@ function initBatMiniGame() {
   // Estado: 'ready' | 'playing' | 'gameover'
   let state = 'ready';
   let score = 0;
+  let shardCombo = 0;
+  let currentPhaseIdx = 0;
+  let phaseBannerTimer = 0;
+  let phaseBannerText = '';
   let gameOverAt = 0;
   let flapBoost = 0;
   let screenShake = 0;
   let spawnDist = 0;
+
+  const PHASES = [
+    { minScore: 0, label: 'Fase I • Nebulosa Obsidian', topBg: '#1e0832', midBg: '#090311', border: 'rgba(189, 76, 255, 0.55)', cap: '#e084ff', starSpeedMul: 1 },
+    { minScore: 15, label: 'Fase II • Vento Noturno', topBg: '#270a46', midBg: '#0b0316', border: 'rgba(215, 114, 255, 0.68)', cap: '#f0b6ff', starSpeedMul: 1.45 },
+    { minScore: 30, label: 'Fase III • Eclipse Carmesim', topBg: '#30082f', midBg: '#0e0313', border: 'rgba(255, 110, 199, 0.72)', cap: '#ff90d8', starSpeedMul: 1.9 },
+    { minScore: 50, label: 'Fase IV • Madrugada Suprema', topBg: '#1d0d47', midBg: '#080318', border: 'rgba(246, 236, 255, 0.78)', cap: '#f6f5ff', starSpeedMul: 2.35 }
+  ];
+
+  function getRankLabel(pts) {
+    if (pts >= 60) return 'Patente: Lenda ASTERX';
+    if (pts >= 35) return 'Patente: Senhor da Madrugada';
+    if (pts >= 20) return 'Patente: Caçador Obsidian';
+    if (pts >= 8) return 'Patente: Explorador Sombrio';
+    return 'Patente: Aprendiz da Noite';
+  }
 
   const bat = {
     x: 110,
@@ -57,6 +80,7 @@ function initBatMiniGame() {
   const pillars = [];
   const shards = [];
   const particles = [];
+  const floatingTexts = [];
   const wingTrail = [];
   const stars = Array.from({ length: 28 }, (_, i) => ({
     x: ((i * 73) % W),
@@ -105,8 +129,46 @@ function initBatMiniGame() {
   function syncScoreUI() {
     if (scoreEl) scoreEl.textContent = String(score);
     if (bestEl) bestEl.textContent = String(bestScore);
+    if (comboEl) {
+      const mult = Math.min(3, shardCombo);
+      comboEl.hidden = mult < 2;
+      if (mult >= 2) comboEl.textContent = `Combo x${mult}`;
+    }
     if (openBestEl) {
       openBestEl.textContent = bestScore > 0 ? `Recorde: ${bestScore}` : 'Arcade';
+    }
+    if (stageBestEl) {
+      stageBestEl.textContent = `${bestScore} ${bestScore === 1 ? 'pt' : 'pts'}`;
+    }
+    if (stageRankEl) {
+      stageRankEl.textContent = getRankLabel(bestScore);
+    }
+  }
+
+  function addFloatingText(x, y, text, color = '#f6f5ff') {
+    floatingTexts.push({
+      x,
+      y,
+      text,
+      color,
+      life: 0,
+      maxLife: 0.85
+    });
+  }
+
+  function checkPhaseProgress() {
+    let nextIdx = 0;
+    for (let i = PHASES.length - 1; i >= 0; i--) {
+      if (score >= PHASES[i].minScore) {
+        nextIdx = i;
+        break;
+      }
+    }
+    if (nextIdx > currentPhaseIdx) {
+      currentPhaseIdx = nextIdx;
+      phaseBannerText = PHASES[nextIdx].label;
+      phaseBannerTimer = 2.0;
+      playTone(440, 880, 0.16, 'sine', 0.06);
     }
   }
 
@@ -127,17 +189,25 @@ function initBatMiniGame() {
     }
   }
 
-  function setOverlay(visible, eyebrow, title, sub, btnLabel) {
+  function setOverlay(visible, eyebrow, title, sub, btnLabel, rankText = '') {
     if (!overlayEl) return;
     overlayEl.classList.toggle('is-hidden', !visible);
     if (eyebrow && overlayEyebrow) overlayEyebrow.textContent = eyebrow;
     if (title && overlayTitle) overlayTitle.textContent = title;
+    if (overlayRank) {
+      overlayRank.hidden = !rankText;
+      if (rankText) overlayRank.textContent = rankText;
+    }
     if (sub && overlaySub) overlaySub.textContent = sub;
     if (btnLabel && overlayBtn) overlayBtn.textContent = btnLabel;
   }
 
   function resetRun(autoStart = false) {
     score = 0;
+    shardCombo = 0;
+    currentPhaseIdx = 0;
+    phaseBannerTimer = 0;
+    phaseBannerText = '';
     bat.y = H * 0.44;
     bat.vy = 0;
     bat.tilt = 0;
@@ -147,6 +217,7 @@ function initBatMiniGame() {
     pillars.length = 0;
     shards.length = 0;
     particles.length = 0;
+    floatingTexts.length = 0;
     wingTrail.length = 0;
     syncScoreUI();
 
@@ -160,7 +231,7 @@ function initBatMiniGame() {
         true,
         'Mini-Game',
         'Caçada na Madrugada',
-        'Toque, clique ou aperte Espaço para voar pelos portais e coletar cristais (+3).',
+        'Toque, clique ou aperte Espaço para voar pelos portais e pegar cristais em sequência para combo.',
         'Começar voo'
       );
     }
@@ -197,11 +268,13 @@ function initBatMiniGame() {
   function triggerGameOver() {
     if (state === 'gameover') return;
     state = 'gameover';
+    shardCombo = 0;
     gameOverAt = performance.now();
     screenShake = 10;
     playTone(210, 75, 0.24, 'sawtooth', 0.09);
     emitParticles(bat.x, bat.y, 26, ['#e084ff', '#f9d9ff', '#ff6495', '#bd4cff'], 190);
 
+    const prevBest = bestScore;
     let isNewRecord = false;
     if (score > bestScore) {
       bestScore = score;
@@ -210,14 +283,20 @@ function initBatMiniGame() {
     }
     syncScoreUI();
 
+    const diff = prevBest - score;
+    const subText = isNewRecord
+      ? 'Você superou seu melhor voo na madrugada!'
+      : (diff > 0 && diff <= 5
+        ? `Quase! Faltaram só ${diff} ${diff === 1 ? 'ponto' : 'pontos'} para o recorde (${bestScore}).`
+        : `Seu recorde atual é ${bestScore} pontos.`);
+
     setOverlay(
       true,
       isNewRecord ? 'Novo Recorde!' : 'Fim de Voo',
       `${score} ${score === 1 ? 'ponto' : 'pontos'}`,
-      isNewRecord
-        ? 'Você superou seu melhor voo na madrugada.'
-        : `Seu recorde atual é ${bestScore} pontos.`,
-      'Jogar novamente'
+      subText,
+      'Jogar novamente',
+      getRankLabel(score)
     );
   }
 
@@ -241,15 +320,27 @@ function initBatMiniGame() {
   }
 
   function update(dt) {
+    const phase = PHASES[currentPhaseIdx] || PHASES[0];
     const speed = state === 'playing' ? 168 + Math.min(95, score * 2.1) : 55;
 
     stars.forEach((s) => {
-      s.x -= s.speed * dt;
+      s.x -= s.speed * phase.starSpeedMul * dt;
       if (s.x < -4) {
         s.x = W + 4;
         s.y = Math.random() * H;
       }
     });
+
+    if (phaseBannerTimer > 0) {
+      phaseBannerTimer = Math.max(0, phaseBannerTimer - dt);
+    }
+
+    for (let i = floatingTexts.length - 1; i >= 0; i--) {
+      const ft = floatingTexts[i];
+      ft.life += dt;
+      ft.y -= 36 * dt;
+      if (ft.life >= ft.maxLife) floatingTexts.splice(i, 1);
+    }
 
     flapBoost = Math.max(0, flapBoost - dt * 3.4);
     bat.wingPhase += dt * (state === 'playing' ? (9.5 + flapBoost * 12) : 6.5);
@@ -310,6 +401,7 @@ function initBatMiniGame() {
       if (!p.passed && p.x + p.width < bat.x) {
         p.passed = true;
         score += 1;
+        checkPhaseProgress();
         syncScoreUI();
         playTone(540, 720, 0.07, 'sine', 0.05);
       }
@@ -335,12 +427,27 @@ function initBatMiniGame() {
       const dy = bat.y - s.y;
       if (!s.collected && (dx * dx + dy * dy) <= (bat.radius + s.r + 3) ** 2) {
         s.collected = true;
-        score += 3;
+        shardCombo += 1;
+        const mult = Math.min(3, shardCombo);
+        const pts = 3 * mult;
+        score += pts;
+        checkPhaseProgress();
         syncScoreUI();
-        playTone(680, 1080, 0.13, 'triangle', 0.08);
-        emitParticles(s.x, s.y, 14, ['#ffffff', '#e084ff', '#c9b3dc'], 135);
+        addFloatingText(
+          s.x,
+          s.y - 10,
+          mult > 1 ? `+${pts} • x${mult}` : `+${pts}`,
+          mult > 1 ? '#f6ccff' : '#ffffff'
+        );
+        playTone(680 + (mult - 1) * 140, 1080 + (mult - 1) * 180, 0.14, 'triangle', 0.08);
+        emitParticles(s.x, s.y, 14 + mult * 3, ['#ffffff', '#e084ff', '#c9b3dc'], 135);
         shards.splice(i, 1);
         continue;
+      }
+
+      if (!s.collected && s.x < bat.x - 42 && shardCombo > 0) {
+        shardCombo = 0;
+        syncScoreUI();
       }
 
       if (s.x < -30) shards.splice(i, 1);
@@ -435,7 +542,7 @@ function initBatMiniGame() {
     ctx.restore();
   }
 
-  function drawPillar(x, y, w, h, capAtBottom) {
+  function drawPillar(x, y, w, h, capAtBottom, phase) {
     if (h <= 0) return;
     const grad = ctx.createLinearGradient(x, 0, x + w, 0);
     grad.addColorStop(0, '#12051d');
@@ -445,7 +552,7 @@ function initBatMiniGame() {
     ctx.fillStyle = grad;
     ctx.fillRect(x, y, w, h);
 
-    ctx.strokeStyle = 'rgba(189, 76, 255, 0.55)';
+    ctx.strokeStyle = phase.border;
     ctx.lineWidth = 1.5;
     ctx.strokeRect(x + 0.75, y + 0.75, w - 1.5, h - 1.5);
 
@@ -453,20 +560,21 @@ function initBatMiniGame() {
     const capY = capAtBottom ? (y + h - capH) : y;
     ctx.fillStyle = 'rgba(215, 114, 255, 0.24)';
     ctx.fillRect(x - 3, capY, w + 6, capH);
-    ctx.strokeStyle = '#e084ff';
+    ctx.strokeStyle = phase.cap;
     ctx.strokeRect(x - 3, capY, w + 6, capH);
   }
 
   function draw() {
+    const phase = PHASES[currentPhaseIdx] || PHASES[0];
     ctx.save();
     if (screenShake > 0) {
       ctx.translate((Math.random() - 0.5) * screenShake, (Math.random() - 0.5) * screenShake);
     }
 
-    // Fundo obsidian + halo central
+    // Fundo obsidian + halo conforme fase da noite
     const bg = ctx.createRadialGradient(W * 0.5, H * 0.35, 10, W * 0.5, H * 0.5, H * 0.75);
-    bg.addColorStop(0, '#1e0832');
-    bg.addColorStop(0.65, '#090311');
+    bg.addColorStop(0, phase.topBg);
+    bg.addColorStop(0.65, phase.midBg);
     bg.addColorStop(1, '#040107');
     ctx.fillStyle = bg;
     ctx.fillRect(0, 0, W, H);
@@ -479,19 +587,19 @@ function initBatMiniGame() {
 
     // Portais
     pillars.forEach((p) => {
-      drawPillar(p.x, -2, p.width, p.topH + 2, true);
-      drawPillar(p.x, p.bottomY, p.width, H - p.bottomY + 2, false);
+      drawPillar(p.x, -2, p.width, p.topH + 2, true, phase);
+      drawPillar(p.x, p.bottomY, p.width, H - p.bottomY + 2, false, phase);
     });
 
-    // Cristais bônus (+3)
+    // Cristais bônus
     shards.forEach((s) => {
       ctx.save();
       ctx.translate(s.x, s.y);
       ctx.rotate(s.rot);
-      ctx.shadowColor = '#e084ff';
+      ctx.shadowColor = phase.cap;
       ctx.shadowBlur = 12;
       ctx.fillStyle = '#f6f5ff';
-      ctx.strokeStyle = '#d772ff';
+      ctx.strokeStyle = phase.cap;
       ctx.lineWidth = 1.6;
       ctx.beginPath();
       ctx.moveTo(0, -s.r);
@@ -514,6 +622,58 @@ function initBatMiniGame() {
     ctx.globalAlpha = 1;
 
     drawBatSprite();
+
+    // Textos flutuantes (+3 / Combo)
+    floatingTexts.forEach((ft) => {
+      const alpha = Math.max(0, 1 - ft.life / ft.maxLife);
+      ctx.save();
+      ctx.globalAlpha = alpha;
+      ctx.font = '700 15px "Geist", system-ui, sans-serif';
+      ctx.textAlign = 'center';
+      ctx.shadowColor = '#bd4cff';
+      ctx.shadowBlur = 10;
+      ctx.fillStyle = ft.color;
+      ctx.fillText(ft.text, ft.x, ft.y);
+      ctx.restore();
+    });
+
+    // Aviso de transição de Fase da Noite
+    if (phaseBannerTimer > 0 && phaseBannerText) {
+      const bannerAlpha = Math.min(1, phaseBannerTimer * 2, (2.0 - phaseBannerTimer) * 4 + 0.2);
+      ctx.save();
+      ctx.globalAlpha = Math.max(0, bannerAlpha);
+      ctx.font = '600 12px "Geist", system-ui, sans-serif';
+      const tw = ctx.measureText(phaseBannerText).width + 28;
+      ctx.fillStyle = 'rgba(18, 6, 30, 0.85)';
+      ctx.strokeStyle = phase.cap;
+      ctx.lineWidth = 1;
+      const bx = (W - tw) / 2;
+      const by = 18;
+      const bh = 28;
+      const br = 14;
+      ctx.beginPath();
+      if (typeof ctx.roundRect === 'function') {
+        ctx.roundRect(bx, by, tw, bh, br);
+      } else {
+        ctx.moveTo(bx + br, by);
+        ctx.lineTo(bx + tw - br, by);
+        ctx.arcTo(bx + tw, by, bx + tw, by + bh, br);
+        ctx.lineTo(bx + tw, by + bh - br);
+        ctx.arcTo(bx + tw, by + bh, bx, by + bh, br);
+        ctx.lineTo(bx + br, by + bh);
+        ctx.arcTo(bx, by + bh, bx, by, br);
+        ctx.lineTo(bx, by + br);
+        ctx.arcTo(bx, by, bx + tw, by, br);
+        ctx.closePath();
+      }
+      ctx.fill();
+      ctx.stroke();
+      ctx.fillStyle = '#f9ecff';
+      ctx.textAlign = 'center';
+      ctx.textBaseline = 'middle';
+      ctx.fillText(phaseBannerText, W / 2, 32);
+      ctx.restore();
+    }
 
     ctx.restore();
   }
